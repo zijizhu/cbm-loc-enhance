@@ -191,6 +191,8 @@ def main():
 
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+  logger.info(f"Training on {str(device)}")
+
   train_loader, test_loader, inference_loader, num_classes, num_concepts = load_data(args.dataset, args.data_dir, args.batch_size, seed=args.seed)
 
   concept_loc_dataset_eval, concept_loc_dataloader_eval = None, None

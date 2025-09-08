@@ -3,6 +3,8 @@
 ## Installation
 
 ```bash
+git submodule update --init --recursive --remote
+
 # Install d2 dependencies
 uv pip install 'fvcore>=0.1.5,<0.1.6' 'pycocotools>=2.0.2' cloudpickle omegaconf timm gdown
 # Install d2

@@ -61,20 +61,8 @@ class PPNet(nn.Module):
     cosine_activations = cosine_conv2d(features, self.prototypes)
     activations = project2basis(features, self.prototypes)
 
-    cosine_scores = F.adaptive_max_pool2d(
-      cosine_activations,
-      (
-        1,
-        1,
-      ),
-    ).squeeze()  # shape: [batch_size, num_concept * k]
-    prototype_logits = F.adaptive_max_pool2d(
-      activations,
-      (
-        1,
-        1,
-      ),
-    ).squeeze()  # shape: [batch_size, num_concept * k]
+    cosine_scores = F.adaptive_max_pool2d(cosine_activations,[1,1,]).squeeze()  # shape: [batch_size, num_concept * k]
+    prototype_logits = F.adaptive_max_pool2d(activations,[1,1,],).squeeze()  # shape: [batch_size, num_concept * k]
 
     logits = self.classifier(prototype_logits)
 
@@ -143,13 +131,8 @@ class PPConceptNet(nn.Module):
     if with_concepts:
       activations = F.conv2d(features, self.prototypes)
       cosine_activations, cosine_scores = None, None
-      prototype_logits = F.adaptive_max_pool2d(
-        activations,
-        (
-          1,
-          1,
-        ),
-      ).squeeze()
+      prototype_logits = F.adaptive_max_pool2d(activations,[1,1,]).squeeze()
+
       if self.p2c_mask is not None:
         concept_scores = prototype_logits @ (self.prototype_to_concept * F.relu(self.p2c_mask))
       else:
@@ -158,11 +141,9 @@ class PPConceptNet(nn.Module):
     else:
       activations = project2basis(features, self.prototypes) if self.use_basis_projection else F.conv2d(features, self.prototypes)
       cosine_activations = cosine_conv2d(features, self.prototypes)
-      # fmt: off
-      cosine_scores = F.adaptive_max_pool2d(cosine_activations,(1,1,),).squeeze()  # shape: [batch_size, num_concept * k]
+      cosine_scores = F.adaptive_max_pool2d(cosine_activations,[1,1]).squeeze()  # shape: [batch_size, num_concept * k]
       concept_scores = None
-      # fmt: off
-      prototype_logits = F.adaptive_max_pool2d(activations,(1,1,),).squeeze()  # shape: [batch_size, num_concept * k]
+      prototype_logits = F.adaptive_max_pool2d(activations,[1,1,]).squeeze()  # shape: [batch_size, num_concept * k]
       logits = self.score_aggregation(prototype_logits)
 
     return logits, concept_scores, cosine_scores, cosine_activations, activations

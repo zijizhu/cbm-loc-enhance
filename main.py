@@ -17,7 +17,7 @@ from data import load_data
 from nets import PPConceptNet, Criterion
 from lightning import seed_everything
 
-from sem_analysis.vlpart import generate_prototype_semantics
+# from sem_analysis.vlpart import generate_prototype_semantics
 from eval.concept_locality import Cub2011Eval, evaluate_concept_locality, get_activation_maps
 
 
@@ -193,7 +193,13 @@ def main():
 
   logger.info(f"Training on {str(device)}")
 
-  train_loader, test_loader, inference_loader, num_classes, num_concepts = load_data(args.dataset, args.data_dir, args.batch_size, seed=args.seed)
+  train_loader, test_loader, inference_loader, num_classes, num_concepts = load_data(
+    args.dataset,
+    args.data_dir,
+    args.batch_size,
+    seed=args.seed,
+    pkl_dataset=True
+  )
 
   concept_loc_dataset_eval, concept_loc_dataloader_eval = None, None
   if args.evaluate:
@@ -236,9 +242,10 @@ def main():
     start_training_concept_layer = (epoch == 0) if args.concept_layer_only else (epoch == args.concept_layer_start_epoch)
     if start_training_concept_layer:
       logger.info("Start generating prototype semantics...")
-      prototype_concept_mask = generate_prototype_semantics(
-        model, inference_loader, log_dir, k=args.k, dataset_name=args.dataset, num_classes=num_classes, device=str(device)
-      )
+      # prototype_concept_mask = generate_prototype_semantics(
+      #   model, inference_loader, log_dir, k=args.k, dataset_name=args.dataset, num_classes=num_classes, device=str(device)
+      # )
+      prototype_concept_mask = None
 
       logger.warning("Prototype semantics generated as full of ones...")
       prototype_concept_mask = torch.ones(

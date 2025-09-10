@@ -1,12 +1,14 @@
 import os
 import pickle as pkl
 import re
+from tqdm import tqdm
 from pathlib import Path
 from typing import Callable, Optional
 
 import numpy as np
 import torch
 from PIL import Image
+import cv2
 from scipy.io import loadmat
 from copy import deepcopy
 from torch.utils.data import DataLoader, Dataset, Subset, random_split, default_collate
@@ -178,6 +180,60 @@ attribute_indices = [
 ]
 
 parts = ["head", "torso", "underparts"]
+
+
+class CUBConceptPklDataset(Dataset):
+    def __init__(
+        self,
+        image_root: str | Path,
+        return_attributes: bool = False,
+        transforms: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+    ):
+        # Load images and sample names
+        self.images, self.samples = dict(), []
+        for class_fn in tqdm(os.listdir(image_root)):  # e.g. 001.Black_footed_Albatross.pkl
+            class_idx = int(class_fn.split(".", 1)[0]) - 1
+            class_name = class_fn.rsplit(".", 1)[0]
+            with open(os.path.join(image_root, class_fn), "rb") as fp:
+                image_dict = pkl.load(fp)
+                self.images[class_name] = image_dict
+                self.samples += [((class_name, image_name,), class_idx,) for image_name in image_dict.keys()]
+
+        self.transform = transforms
+
+        # Load labels
+        with open(Path("data") / "CUB" / "class_attr_data_10" / "train.pkl", "rb") as fp:
+            train_attribute_anns = pkl.load(fp)
+
+        label2attr = dict()
+        for ann in train_attribute_anns:
+            label, attribute_vector = ann["class_label"], ann["attribute_label"]
+            if label not in label2attr:
+                label2attr[label] = attribute_vector
+
+        self.attributes = torch.tensor([label2attr[i] for i in range(len(label2attr))], dtype=torch.long)
+
+        with open(Path("data") / "CUB" / "cub_attributes_cleaned.txt", "r") as fp:
+            all_attribute_texts = fp.read().splitlines()
+        self.attribute_texts = [all_attribute_texts[i] for i in attribute_indices]
+
+        self.return_attributes = return_attributes
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, index: int):
+        (class_name, image_name), label = self.samples[index]
+        im_bytes = np.frombuffer(self.images[class_name][image_name], dtype=np.uint8)
+        im = Image.fromarray(cv2.imdecode(im_bytes, -1)).convert("RGB")
+
+        im_pt = self.transform(im)
+        attr = self.attributes[label]
+        return_data = [im_pt, label]
+        if self.return_attributes:
+            return_data.append(attr)
+        return tuple(return_data)
 
 
 class CUBConceptDataset(ImageFolder):
@@ -385,26 +441,12 @@ def load_celeba_data(root_dir: str, transforms: Callable | None = None):
     return train_dataset, test_dataset, inference_dataset
 
 
-def load_data(dataset_name: str, data_dir: str, batch_size: int, seed=42):
+def load_data(dataset_name: str, data_dir: str, batch_size: int, seed=42, pkl_dataset: bool = False):
     assert dataset_name in ["CUB", "SUN", "CelebA"]
     transforms = T.Compose([
-        T.Resize((
-            224,
-            224,
-        )),
+        T.Resize((224,224,)),
         T.ToTensor(),
-        T.Normalize(
-            (
-                0.485,
-                0.456,
-                0.406,
-            ),
-            (
-                0.229,
-                0.224,
-                0.225,
-            ),
-        ),
+        T.Normalize((0.485,0.456,0.406,),(0.229,0.224,0.225,)),
     ])
 
     if dataset_name == "SUN":
@@ -420,16 +462,45 @@ def load_data(dataset_name: str, data_dir: str, batch_size: int, seed=42):
         num_classes, num_concepts = 256, 6
         collate_fn = celeba_collate_fn
     else:
-        train_dataset = CUBConceptDataset(
-            Path(data_dir) / "cub200_cropped" / "train_cropped_augmented", return_attributes=True, transforms=transforms
+        train_dataset_kwargs = dict(
+            image_root=Path(data_dir) / "cub200_cropped" / "train_cropped_augmented",
+            return_attributes=True,
+            transforms=transforms
         )
+        train_dataset = CUBConceptPklDataset(**train_dataset_kwargs) if pkl_dataset else CUBConceptDataset(**train_dataset_kwargs)
         inference_dataset = CUBConceptDataset(
-            Path(data_dir) / "cub200_cropped" / "train_cropped", transforms=transforms, return_attributes=True, return_img_path=True
+            image_root=Path(data_dir) / "cub200_cropped" / "train_cropped",
+            transforms=transforms,
+            return_attributes=True,
+            return_img_path=True
         )
-        test_dataset = CUBConceptDataset(Path(data_dir) / "cub200_cropped" / "test_cropped", return_attributes=True, transforms=transforms)
+        test_dataset = CUBConceptDataset(
+            image_root=Path(data_dir) / "cub200_cropped" / "test_cropped",
+            return_attributes=True,
+            transforms=transforms
+        )
         num_classes, num_concepts = 200, 112
         collate_fn = default_collate
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
     inference_loader = DataLoader(inference_dataset, collate_fn=collate_fn_with_raw_images, batch_size=8, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
     return train_loader, test_loader, inference_loader, num_classes, num_concepts
+
+
+def create_cub_augmented_pkl_dataset():
+    input_root = os.path.join(os.getcwd(), "datasets/cub200_cropped")
+    output_root = os.path.join(os.getcwd(), "pickles/train_cropped_augmented")
+
+    for root, dirs, files in os.walk(input_root):
+        if not ('train_cropped_augmented' in root and len(files) > 0):
+            continue
+        class_data = dict()
+        class_name = os.path.basename(root)
+        for fn in files:
+            im_path = os.path.join(root, fn)
+            with open(im_path,'rb') as fp:
+                jpg = fp.read()
+            class_data[fn] = jpg
+            with open(os.path.join(output_root, f"{class_name}.pkl"), "wb") as fp:
+                pkl.dump(class_data, fp)
+        print(f'processed {class_name}')

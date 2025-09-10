@@ -148,6 +148,7 @@ def main():
   parser.add_argument("--batch-size", type=int, default=80, help="Batch size for training")  # 120 should word the best with CUB-200-2011
   parser.add_argument("--data-dir", type=str, default="datasets")
   parser.add_argument("--log-dir", type=str, default="logs")
+  parser.add_argument("--pkl-dataset", action="store_true")
 
   parser.add_argument("--dataset", type=str, default="CUB", choices=["CUB", "SUN", "CelebA"])
 
@@ -200,7 +201,7 @@ def main():
     args.data_dir,
     args.batch_size,
     seed=args.seed,
-    pkl_dataset=True
+    pkl_dataset=args.pkl_dataset
   )
 
   concept_loc_dataset_eval, concept_loc_dataloader_eval = None, None

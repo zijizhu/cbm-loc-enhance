@@ -17,7 +17,7 @@ from data import load_data
 from nets import PPConceptNet, Criterion
 from lightning import seed_everything
 
-# from sem_analysis.vlpart import generate_prototype_semantics
+from sem_analysis.vlpart import generate_prototype_semantics
 from eval.concept_locality import Cub2011Eval, evaluate_concept_locality, get_activation_maps
 
 
@@ -113,27 +113,22 @@ def get_full_optimizer(model: nn.Module):
 
 def get_concept_layer_optimizer(model: nn.Module):
   """Tweak this function to set the try out different hyperparameters for training concept layer"""
-  # optimizer = optim.Adam([
-  #     {'params': model.backbone.parameters(), 'lr': 1e-3, 'weight_decay': 1e-3},
-  #     {'params': model.adapter.parameters(), 'lr': 1e-3, 'weight_decay': 1e-3},
-  #     {'params': [model.prototypes], 'lr': 3e-3},
-  #     {'params': model.prototype_to_concept, 'lr': 3e-3},
-  #     # {'params': model.p2c_mask, 'lr': 1e-6},
-  #     {'params': model.concept_to_class.parameters(), 'lr': 3e-3},
-  # ])
+  optimizer = optim.Adam([
+      {'params': model.prototype_to_concept, 'lr': 3e-3},
+      {'params': model.p2c_mask, 'lr': 1e-6},
+      {'params': model.concept_to_class.parameters(), 'lr': 3e-3},
+  ])
 
-  # Full fine-tuning
-  optimizer = optim.Adam(model.parameters(), lr=1e-3)
   for params in model.parameters():
-    params.requires_grad = True
+    params.requires_grad = False
 
   # Fine-tine concept layer only
 
-  # model.prototype_to_concept.requires_grad = True
-  # model.p2c_mask.requires_grad = True
+  model.prototype_to_concept.requires_grad = True
+  model.p2c_mask.requires_grad = True
 
-  # for params in model.concept_to_class.parameters():
-  #     params.requires_grad = True
+  for params in model.concept_to_class.parameters():
+      params.requires_grad = True
 
   return optimizer
 
@@ -245,9 +240,9 @@ def main():
     start_training_concept_layer = (epoch == 0) if args.concept_layer_only else (epoch == args.concept_layer_start_epoch)
     if start_training_concept_layer:
       logger.info("Start generating prototype semantics...")
-      # prototype_concept_mask = generate_prototype_semantics(
-      #   model, inference_loader, log_dir, k=args.k, dataset_name=args.dataset, num_classes=num_classes, device=str(device)
-      # )
+      prototype_concept_mask = generate_prototype_semantics(
+        model, inference_loader, log_dir, k=args.k, dataset_name=args.dataset, num_classes=num_classes, device=str(device)
+      )
       prototype_concept_mask = None
 
       logger.warning("Prototype semantics generated as full of ones...")

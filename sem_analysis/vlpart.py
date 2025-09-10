@@ -12,7 +12,7 @@ from tqdm import tqdm
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
 from VLPart.vlpart.config import add_vlpart_config
-# from VLPart.vlpart.modeling.meta_arch.vlm_rcnn_inference import add_vlpart_config
+from VLPart.vlpart.modeling.meta_arch.vlm_rcnn_inference import *  # noqa: F403
 from detectron2.data import MetadataCatalog
 
 from detectron2.structures import Instances, Boxes

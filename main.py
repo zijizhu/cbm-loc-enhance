@@ -245,20 +245,19 @@ def main():
       )
       prototype_concept_mask = None
 
-      logger.warning("Prototype semantics generated as full of ones...")
-      prototype_concept_mask = torch.ones(
-        (
-          num_classes * args.k,
-          num_concepts,
-        ),
-        dtype=torch.bool,
-      )
+      # logger.warning("Prototype semantics generated as full of ones...")
+      # prototype_concept_mask = torch.ones(
+      #   (
+      #     num_classes * args.k,
+      #     num_concepts,
+      #   ),
+      #   dtype=torch.bool,
+      # )
 
       model.init_concept_layer(prototype_concept_mask.float().to(device=device))
 
       logger.info("Start training concept layer...")
       optimizer = get_concept_layer_optimizer(model)
-      # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.2)
       lr_scheduler = None
     elif (not args.concept_layer_only) and (epoch == args.joint_start_epoch):
       logger.info("Start fine-tuning...")

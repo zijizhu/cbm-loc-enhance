@@ -481,9 +481,9 @@ def load_data(dataset_name: str, data_dir: str, batch_size: int, seed=42, pkl_da
         )
         num_classes, num_concepts = 200, 112
         collate_fn = default_collate
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-    inference_loader = DataLoader(inference_dataset, collate_fn=collate_fn_with_raw_images, batch_size=8, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=8)
+    inference_loader = DataLoader(inference_dataset, collate_fn=collate_fn_with_raw_images, batch_size=8, shuffle=True, num_workers=8)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn, num_workers=8)
     return train_loader, test_loader, inference_loader, num_classes, num_concepts
 
 

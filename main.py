@@ -147,6 +147,8 @@ def main():
 
   parser.add_argument("--batch-size", type=int, default=80, help="Batch size for training")  # 120 should word the best with CUB-200-2011
   parser.add_argument("--data-dir", type=str, default="datasets")
+  parser.add_argument("--log-dir", type=str, default="logs")
+
   parser.add_argument("--dataset", type=str, default="CUB", choices=["CUB", "SUN", "CelebA"])
 
   parser.add_argument("--k", type=int, default=10)
@@ -173,7 +175,7 @@ def main():
   seed_everything(args.seed)
   torch.Generator().manual_seed(args.seed)
 
-  log_dir = Path("logs") / args.name
+  log_dir = Path(args.log_dir) / args.name
   log_dir.mkdir(parents=True, exist_ok=True)
 
   logging.basicConfig(

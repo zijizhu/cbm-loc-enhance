@@ -243,7 +243,6 @@ def main():
       prototype_concept_mask = generate_prototype_semantics(
         model, inference_loader, log_dir, k=args.k, dataset_name=args.dataset, num_classes=num_classes, device=str(device)
       )
-      prototype_concept_mask = None
 
       # logger.warning("Prototype semantics generated as full of ones...")
       # prototype_concept_mask = torch.ones(

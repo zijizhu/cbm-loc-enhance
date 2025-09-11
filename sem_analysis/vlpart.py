@@ -227,7 +227,7 @@ def generate_prototype_semantics(model, dataloader, save_dir: Path | str = "./",
             prototype_semantics_scores[cls].append(pred.cpu())
 
     prototype_part_mapping = []
-    idx2part = bird_idx2part if dataset_name == "bird" else celeba_idx2part
+    idx2part = bird_idx2part if dataset_name == "CUB" else celeba_idx2part
     for cls_i, cls_i_logits in prototype_semantics_scores.items():
         logits = torch.stack(cls_i_logits, dim=1)
         mean_logits = logits.softmax(dim=-1).mean(dim=1)

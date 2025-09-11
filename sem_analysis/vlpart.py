@@ -235,7 +235,7 @@ def generate_prototype_semantics(model, dataloader, save_dir: Path | str = "./",
 
         prototype_part_mapping.extend([idx2part[idx] for idx in part_indices.tolist()])
 
-    attr_part_map_fn = 'data/CUB/attribute_part_mapping.txt' if dataset_name == "bird" else "./data/CelebA/attribute_part_mapping.txt"
+    attr_part_map_fn = 'data/CUB/attribute_part_mapping.txt' if dataset_name == "CUB" else "./data/CelebA/attribute_part_mapping.txt"
 
     with open(attr_part_map_fn, 'r') as fp:
         concept_part_mapping = fp.read().splitlines()

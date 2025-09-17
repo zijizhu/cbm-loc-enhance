@@ -114,18 +114,15 @@ def get_full_optimizer(model: nn.Module):
 def get_concept_layer_optimizer(model: nn.Module):
   """Tweak this function to set the try out different hyperparameters for training concept layer"""
   optimizer = optim.Adam([
-      {'params': model.prototype_to_concept, 'lr': 3e-3},
-      {'params': model.p2c_mask, 'lr': 1e-6},
-      {'params': model.concept_to_class.parameters(), 'lr': 3e-3},
+      {'params': model.prototype_to_concept, 'lr': 1e-3},
+      {'params': model.concept_to_class.parameters(), 'lr': 1e-3},
   ])
 
   for params in model.parameters():
     params.requires_grad = False
 
   # Fine-tine concept layer only
-
   model.prototype_to_concept.requires_grad = True
-  model.p2c_mask.requires_grad = True
 
   for params in model.concept_to_class.parameters():
       params.requires_grad = True

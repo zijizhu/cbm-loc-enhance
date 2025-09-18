@@ -1,0 +1,6 @@
+#!/bin/bash
+
+datadir="/data/datasets"
+logdir="./logs"
+
+python3 /home/561/zz8462/source/cbm-loc-enhance/main.py --data-dir $datadir --log-dir $logdir

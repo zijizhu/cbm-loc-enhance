@@ -20,7 +20,7 @@ export dataset_root=$PWD
 git clone https://github.com/openai/CLIP.git
 pip install ftfy regex tqdm
 pip install -e CLIP/
-pip install pandas cv2 grad-cam torchmetrics
+pip install pandas opencv-python grad-cam torchmetrics
 
 scp ~/Downloads/backbone-checkpoints-Label_free-CBM.zip root@193.69.10.2:/workspace/Label-free-cbm/
 
@@ -28,15 +28,13 @@ pip install gdown
 git submodule update --init --recursive --remote
 
 # Install d2 dependencies
-uv pip install 'fvcore>=0.1.5,<0.1.6' 'pycocotools>=2.0.2' cloudpickle omegaconf timm gdown
+pip install 'fvcore>=0.1.5,<0.1.6' 'pycocotools>=2.0.2' cloudpickle omegaconf timm gdown
 
 # Install d2
-git clone https://github.com/facebookresearch/detectron2/tree/main
+git clone https://github.com/facebookresearch/detectron2.git
 
-pip install -e ./detectron2
+pip install -e ./detectron2 --no-build-isolation
 
 # macOS
 # CC=clang CXX=clang++ ARCHFLAGS="-arch x86_64" uv pip install -e ./detectron2 --no-deps --no-build-isolation
-
-mv attributes.txt CUB_200_2011
 ```

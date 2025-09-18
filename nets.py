@@ -148,6 +148,13 @@ class PPConceptNet(nn.Module):
 
     return logits, concept_scores, cosine_scores, cosine_activations, activations
 
+  def push_forward(self, images: torch.Tensor):
+    features = self.backbone(images)  # shape: [batch_size, dim, w, h]
+    features = self.adapter(features)
+    activations = F.conv2d(features, self.prototypes)
+    return None, activations
+
+
   def normalize_prototypes(self):
     self.prototypes.data = F.normalize(self.prototypes, p=2, dim=1).data
 

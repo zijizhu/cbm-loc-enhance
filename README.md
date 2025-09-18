@@ -35,6 +35,8 @@ git clone https://github.com/facebookresearch/detectron2.git
 
 pip install -e ./detectron2 --no-build-isolation
 
+git clone https://github.com/zijizhu/VLPart.git
+
 # macOS
 # CC=clang CXX=clang++ ARCHFLAGS="-arch x86_64" uv pip install -e ./detectron2 --no-deps --no-build-isolation
 ```

@@ -204,7 +204,7 @@ def main():
         ToTensor(),
         Normalize((0.485,0.456,0.406,),(0.229,0.224,0.225,),),
     ])
-    concept_loc_dataset_eval = Cub2011Eval(root="datasets/", train=False, transform=transforms)
+    concept_loc_dataset_eval = Cub2011Eval(root=args.data_dir, train=False, transform=transforms)
     concept_loc_dataloader_eval = DataLoader(concept_loc_dataset_eval, shuffle=False, batch_size=150)
 
   model = PPConceptNet(

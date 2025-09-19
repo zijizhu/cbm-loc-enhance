@@ -293,7 +293,7 @@ def main():
                 patch_drop_correct += (predicted == labels).sum().item()
                 patch_drop_total += labels.size(0)
 
-                bin_acc(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
+                bin_acc.update(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
 
             for images, labels, attrs in attr_i_drop_loader:
                 images, labels, attributes = images.to(device), labels.to(device), attrs.to(device)
@@ -303,7 +303,7 @@ def main():
                 correct += (predicted == labels).sum().item()
                 total += labels.size(0)
 
-                patch_drop_bin_acc(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
+                patch_drop_bin_acc.update(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
 
             attr_i_stats = {
                 "attr_idx": attr_i,

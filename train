@@ -1,6 +1,16 @@
 #!/bin/bash
 
-datadir="/data/datasets"
+datadir="/data/"
 logdir="./logs"
 
-python3 main.py --data-dir $datadir --log-dir $logdir
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet18 --name resnet18 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet18 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet121 --name densenet121 --evaluate
+
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet18 --name resnet18-42 --seed 42 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet18-42 --seed 42 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet121 --name densenet121-42 --seed 42 --evaluate
+
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet18 --name resnet18-0 --seed 0 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet18-0 --seed 0 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet121 --name densenet121-0 --seed 0 --evaluate

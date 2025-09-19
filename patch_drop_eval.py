@@ -259,7 +259,7 @@ def main():
     with torch.inference_mode():
         for attr_i in tqdm(concept_drop_dataset.attr_id2part_indices):
             attr2part = np.zeros(TOTAL_NUM_PARTS).astype(bool)
-            attr2part[dataset.attr_id2part_indices[0]] = True
+            attr2part[dataset.attr_id2part_indices[attr_i]] = True
 
             attr_i_visible = (sample_part_visible & attr2part).sum(axis=1) > 0
 

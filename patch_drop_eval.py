@@ -142,8 +142,10 @@ class CUBConceptDropDataset(Dataset):
         object_x, object_y, object_w, object_h = tuple(self.bbox_df.iloc[im_id][["x", "y", "w", "h"]])
 
         # Locate the part keypoints of the attribute, then apply crop and resize transforms on them
-        part_indices = set(sample_keypoints['part_idx']) and set(self.attr_id2part_indices[self.drop_attribute_index])
-        part_cxcy = sample_keypoints.loc[sample_keypoints["part_idx"].isin(part_indices)][["x", "y"]].to_numpy()
+        part_indices = set(sample_keypoints['part_idx']) & set(self.attr_id2part_indices[self.drop_attribute_index])
+        if len(part_indices) == 0:
+            print("something wrong")
+        part_cxcy = sample_keypoints.loc[sample_keypoints["part_idx"].isin(list(part_indices))][["x", "y"]].to_numpy()
         part_cxcy_pt = tv_tensors.KeyPoints(part_cxcy, canvas_size=(raw_h, raw_w))
         part_cxcy_transformed = v2.functional.crop(part_cxcy_pt, top=object_y, left=object_x, height=object_h, width=object_w)
         part_cxcy_transformed = v2.functional.resize(part_cxcy_transformed, [224, 224])
@@ -295,7 +297,6 @@ def main():
                 correct += (predicted == labels).sum().item()
                 total += labels.size(0)
 
-                print(concept_scores.shape, attrs.shape)
                 bin_acc.update(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
 
             for images, labels, attrs in attr_i_drop_loader:

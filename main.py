@@ -156,7 +156,7 @@ def main():
   parser.add_argument("--disable-basis-projection", action="store_true")
 
   parser.add_argument("--lr", type=float, default=0.01, help="Learning rate")
-  parser.add_argument("--epochs", type=int, default=9, help="Number of training epochs")
+  parser.add_argument("--epochs", type=int, default=11, help="Number of training epochs")
   parser.add_argument("--joint-start-epoch", type=int, default=3)
   parser.add_argument("--concept-layer-start-epoch", type=int, default=6)
 

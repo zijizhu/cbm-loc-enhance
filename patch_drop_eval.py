@@ -294,8 +294,8 @@ def main():
                 logits, concept_scores, _, _, _ = model(images, with_concepts=True)
 
                 predicted = torch.argmax(logits, dim=-1)
-                patch_drop_correct += (predicted == labels).sum().item()
-                patch_drop_total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+                total += labels.size(0)
 
                 bin_acc.update(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
 
@@ -304,8 +304,8 @@ def main():
                 logits, concept_scores, _, _, _ = model(images, with_concepts=True)
 
                 predicted = torch.argmax(logits, dim=-1)
-                correct += (predicted == labels).sum().item()
-                total += labels.size(0)
+                patch_drop_correct += (predicted == labels).sum().item()
+                patch_drop_total += labels.size(0)
 
                 patch_drop_bin_acc.update(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
 

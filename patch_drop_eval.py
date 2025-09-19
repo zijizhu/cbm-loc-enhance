@@ -221,6 +221,7 @@ def main():
 
     ckpt = torch.load(args.ckpt_path)
     model.load_state_dict(ckpt["state_dict"])
+    model.to(device=device)
     model.eval()
 
     label2attr = dict()

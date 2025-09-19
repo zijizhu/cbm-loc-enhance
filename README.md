@@ -22,7 +22,7 @@ export datasetroot=$PWD
 git clone https://github.com/openai/CLIP.git
 pip install ftfy regex tqdm
 pip install -e CLIP/
-pip install pandas opencv-python grad-cam torchmetrics timm
+pip install pandas opencv-python grad-cam timm torcheval
 
 # Install d2: https://stackoverflow.com/a/79095245/17662217
 pip install --no-build-isolation 'git+https://github.com/facebookresearch/detectron2.git'
@@ -34,6 +34,7 @@ git clone https://github.com/zijizhu/VLPart.git
 ## Training
 
 ```sh
+
 python3 main.py \
     --data-dir $datadir \
     --log-dir $logdir \

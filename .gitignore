@@ -12,3 +12,4 @@ wheels/
 logs/
 datasets/
 cub200_cropped/
+checkpoints/

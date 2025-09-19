@@ -14,7 +14,7 @@ def in_bbox(loc, bbox):
   return loc[0] >= bbox[0] and loc[0] <= bbox[1] and loc[1] >= bbox[2] and loc[1] <= bbox[3]
 
 
-data_root = "/Users/zhijiezhu/Developer/Research/datasets/CUB_200_2011/"
+data_root = os.path.join(os.getenv("datadir", "./datasets/"), "CUB_200_2011")
 out_dir = "output_view/parts"
 
 img_txt = os.path.join(data_root, "images.txt")

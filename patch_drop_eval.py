@@ -314,9 +314,9 @@ def main():
             attr_i_stats = {
                 "attr_idx": attr_i,
                 "attr_name": dataset.attribute_texts[attr_i],
-                "concept_acc": bin_acc.compute().cpu(),
+                "concept_acc": bin_acc.compute().cpu().item(),
                 "class_acc": correct / total,
-                "patch_drop_concept_acc": patch_drop_bin_acc.compute().cpu(),
+                "patch_drop_concept_acc": patch_drop_bin_acc.compute().cpu().item(),
                 "patch_drop_class_acc": patch_drop_correct / patch_drop_total,
             }
 
@@ -325,7 +325,13 @@ def main():
                 logger.info(f"{key.ljust(20)} {val}")
 
             statistics.append(attr_i_stats)
-            pd.DataFrame(statistics).to_csv(log_dir / "patch_drop_stats.csv")
+
+    stats_df = pd.DataFrame(statistics)
+    stats_df.to_csv(log_dir / "patch_drop_stats.csv")
+    mean_concept_acc_delta = stats_df['concept_acc'].mean() - stats_df['patch_drop_concept_acc'].mean()
+    mean_class_acc_delta = stats_df['class_acc'].mean() - stats_df['patch_drop_class_acc'].mean()
+    logger.info(f"Average concept accuracy delta over all attributes: {mean_concept_acc_delta}")
+    logger.info(f"Average class accuracy delta over all attributes: {stats_df['class_acc'].mean(mean_class_acc_delta)}")
 
 if __name__ == "__main__":
     main()

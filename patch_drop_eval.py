@@ -26,7 +26,7 @@ from nets import PPConceptNet
 
 
 class CUBConceptDropDataset(Dataset):
-    def __init__(self, data_root: str | Path, drop_attribute_index: int | None, crop_size: int = 30, check_integrity = False):
+    def __init__(self, data_root: str | Path, drop_attribute_index: int | None, crop_size: int = 50, check_integrity = False):
         self.data_root = Path(data_root)
         self.crop_size = crop_size
         self.drop_attribute_index = drop_attribute_index
@@ -331,7 +331,7 @@ def main():
     mean_concept_acc_delta = stats_df['concept_acc'].mean() - stats_df['patch_drop_concept_acc'].mean()
     mean_class_acc_delta = stats_df['class_acc'].mean() - stats_df['patch_drop_class_acc'].mean()
     logger.info(f"Average concept accuracy delta over all attributes: {mean_concept_acc_delta}")
-    logger.info(f"Average class accuracy delta over all attributes: {stats_df['class_acc'].mean(mean_class_acc_delta)}")
+    logger.info(f"Average class accuracy delta over all attributes: {mean_class_acc_delta}")
 
 if __name__ == "__main__":
     main()

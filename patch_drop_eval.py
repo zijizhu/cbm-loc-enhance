@@ -24,58 +24,6 @@ from data import attribute_indices
 from eval.local_parts import attributes_indexes
 from nets import PPConceptNet
 
-from torchvision.tv_tensors import TVTensor
-
-
-class KeyPoints(TVTensor):
-    canvas_size: tuple[int, int]
-
-    @classmethod
-    def _wrap(cls, tensor: torch.Tensor, *, canvas_size: tuple[int, int], check_dims: bool = True) -> KeyPoints:  # type: ignore[override]
-        if check_dims:
-            if tensor.ndim == 1:
-                tensor = tensor.unsqueeze(0)
-            elif tensor.shape[-1] != 2:
-                raise ValueError(f"Expected a tensor of shape (..., 2), not {tensor.shape}")
-        points = tensor.as_subclass(cls)
-        points.canvas_size = canvas_size
-        return points
-
-    def __new__(
-        cls,
-        data: Any,
-        *,
-        canvas_size: tuple[int, int],
-        dtype: torch.dtype | None = None,
-        device: torch.device | str | int | None = None,
-        requires_grad: bool | None = None,
-    ) -> KeyPoints:
-        tensor = cls._to_tensor(data, dtype=dtype, device=device, requires_grad=requires_grad)
-        return cls._wrap(tensor, canvas_size=canvas_size)
-
-    @classmethod
-    def _wrap_output(
-        cls,
-        output: torch.Tensor,
-        args: Sequence[Any] = (),
-        kwargs: Mapping[str, Any] | None = None,
-    ) -> KeyPoints:
-        # Similar to BoundingBoxes._wrap_output(), see comment there.
-        flat_params, _ = tree_flatten(args + (tuple(kwargs.values()) if kwargs else ()))  # type: ignore[operator]
-        first_keypoints_from_args = next(x for x in flat_params if isinstance(x, KeyPoints))
-        canvas_size = first_keypoints_from_args.canvas_size
-
-        if isinstance(output, torch.Tensor) and not isinstance(output, KeyPoints):
-            output = KeyPoints._wrap(output, canvas_size=canvas_size, check_dims=False)
-        elif isinstance(output, (tuple, list)):
-            # This branch exists for chunk() and unbind()
-            output = type(output)(KeyPoints._wrap(part, canvas_size=canvas_size, check_dims=False) for part in output)
-        return output
-
-    def __repr__(self, *, tensor_contents: Any = None) -> str:  # type: ignore[override]
-        return self._make_repr(canvas_size=self.canvas_size)
-
-
 
 class CUBConceptDropDataset(Dataset):
     def __init__(self, data_root: str | Path, drop_attribute_index: int | None, crop_size: int = 30, check_integrity = False):
@@ -201,7 +149,7 @@ class CUBConceptDropDataset(Dataset):
         # Locate the part keypoints of the attribute, then apply crop and resize transforms on them
         part_indices = set(sample_keypoints['part_idx']) and set(self.attr_id2part_indices[self.drop_attribute_index])
         part_cxcy = sample_keypoints.loc[sample_keypoints["part_idx"].isin(part_indices)][["x", "y"]].to_numpy()
-        part_cxcy_pt = KeyPoints(part_cxcy, canvas_size=(raw_h, raw_w))
+        part_cxcy_pt = tv_tensors.KeyPoints(part_cxcy, canvas_size=(raw_h, raw_w))
         part_cxcy_transformed = v2.functional.crop(part_cxcy_pt, top=object_y, left=object_x, height=object_h, width=object_w)
         part_cxcy_transformed = v2.functional.resize(part_cxcy_transformed, [224, 224])
 

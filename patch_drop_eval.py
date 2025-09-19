@@ -1,19 +1,14 @@
-from __future__ import annotations
-
 import argparse
 import logging
-import os
 import pickle as pkl
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
 import torch
 from lightning import seed_everything
 from PIL import Image, ImageDraw
-from torch.utils._pytree import tree_flatten
 from torch.utils.data import DataLoader, Dataset, Subset
 from torcheval.metrics import BinaryAccuracy
 from torchvision import tv_tensors
@@ -288,8 +283,9 @@ def main():
 
             correct, patch_drop_correct = 0, 0
             total, patch_drop_total = 0, 0
-            bin_acc = BinaryAccuracy().to(device=device)
-            patch_drop_bin_acc = BinaryAccuracy().to(device=device)
+
+            bin_acc = BinaryAccuracy(threshold=0.7).to(device=device)
+            patch_drop_bin_acc = BinaryAccuracy(threshold=0.7).to(device=device)
 
             for images, labels, attrs in attr_i_loader:
                 images, labels, attributes = images.to(device), labels.to(device), attrs.to(device)
@@ -299,6 +295,7 @@ def main():
                 correct += (predicted == labels).sum().item()
                 total += labels.size(0)
 
+                print(concept_scores.shape, attrs.shape)
                 bin_acc.update(torch.sigmoid(concept_scores)[:, attr_i], attrs[:, attr_i])
 
             for images, labels, attrs in attr_i_drop_loader:

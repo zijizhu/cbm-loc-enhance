@@ -156,7 +156,6 @@ class PPConceptNet(nn.Module):
       activations = project2basis(features, self.prototypes)
       return None, activations
 
-
   def normalize_prototypes(self):
     self.prototypes.data = F.normalize(self.prototypes, p=2, dim=1).data
 

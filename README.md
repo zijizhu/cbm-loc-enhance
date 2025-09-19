@@ -34,6 +34,7 @@ git clone https://github.com/zijizhu/VLPart.git
 ## Training
 
 ```sh
+python patch_drop_eval.py --ckpt-path ./checkpoints/densenet161.pth --log-dir ./logs/patch_drop/ --data-dir /data/
 
 python3 main.py \
     --data-dir $datadir \

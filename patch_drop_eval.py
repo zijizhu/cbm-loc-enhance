@@ -273,7 +273,7 @@ def main():
 
     with torch.inference_mode():
         for attr_i in tqdm(concept_drop_dataset.attr_id2part_indices):
-            selected_class_indices = torch.nonzero(attributes[:, attr_i]).flatten().numpy()
+            selected_class_indices = torch.nonzero(attributes[:, attr_i]).flatten().cpu().numpy()
             sample_mask = samples_df["label"].isin(selected_class_indices).to_numpy()
             selected_sample_indices, = np.nonzero(sample_mask)
 

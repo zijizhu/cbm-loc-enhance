@@ -225,39 +225,6 @@ def main():
     model.to(device=device)
     model.eval()
 
-    label2attr = dict()
-    with open(Path("data") / "CUB" / "class_attr_data_10" / "train.pkl", "rb") as fp:
-        train_attribute_anns = pkl.load(fp)
-
-    for ann in train_attribute_anns:
-        label, attribute_vector = ann["class_label"], ann["attribute_label"]
-        if label not in label2attr:
-            label2attr[label] = attribute_vector
-
-    attributes = torch.tensor([label2attr[i] for i in range(len(label2attr))], dtype=torch.long)
-
-    images_df = pd.read_csv(
-        Path(args.data_dir) / "CUB_200_2011" / "images.txt",
-        header=None,
-        delimiter=" ",
-        names=["img_id", "path"],
-        usecols=[0, 1],
-        index_col=0
-    )
-    splits_df = pd.read_csv(
-        Path(args.data_dir) / "CUB_200_2011" / "train_test_split.txt",
-        header=None,
-        delimiter=" ",
-        names=["img_id", "is_train"],
-        usecols=[0, 1],
-        index_col=0
-    )
-    images_df.index = images_df.index - 1
-    splits_df.index = splits_df.index - 1
-    images_df["label"] = images_df["path"].str.split(".").str[0].astype(int) - 1
-    samples_df = pd.concat([images_df, splits_df], axis=1)
-    samples_df = samples_df.loc[samples_df["is_train"] == 0]
-
     dataset = CUBConceptDropDataset(
         data_root=Path(args.data_dir),
         drop_attribute_index=None
@@ -266,14 +233,41 @@ def main():
         data_root=Path(args.data_dir),
         drop_attribute_index=0
     )
+
+    attributes = dataset.attributes.clone().detach()
+
+    images_df = dataset.images_df.copy()
+    splits_df = dataset.splits_df.copy()
+
+    images_df["label"] = images_df["path"].str.split(".").str[0].astype(int) - 1
+    samples_df = pd.concat([images_df, splits_df], axis=1)
+    samples_df = samples_df.loc[samples_df["is_train"] == 0]
+
+    kp_df = dataset.keypoints_df.copy()
+    kp_df = kp_df[(kp_df["x"] != 0) & (kp_df["y"] != 0)]
+
+    sample_part_visible = np.zeros((len(dataset.images_df), 15))
+    for i in range(len(dataset.images_df)):
+        visible_part_indices = kp_df[kp_df.index == i]["part_idx"].to_numpy()
+        sample_part_visible[i, visible_part_indices] = 1
+    sample_part_visible = sample_part_visible[dataset.splits_df["is_train"] == 0].astype(bool)
+
+    TOTAL_NUM_PARTS = 15
+
     statistics = []
 
     with torch.inference_mode():
         for attr_i in tqdm(concept_drop_dataset.attr_id2part_indices):
+            attr2part = np.zeros(TOTAL_NUM_PARTS).astype(bool)
+            attr2part[dataset.attr_id2part_indices[0]] = True
+
+            attr_i_visible = (sample_part_visible & attr2part).sum(axis=1) > 0
+
             selected_class_indices = torch.nonzero(attributes[:, attr_i]).flatten().cpu().numpy()
             if selected_class_indices.size == 0:
                 continue
             sample_mask = samples_df["label"].isin(selected_class_indices).to_numpy()
+            sample_mask = sample_mask & attr_i_visible
             selected_sample_indices, = np.nonzero(sample_mask)
 
             concept_drop_dataset.drop_attribute_index = attr_i

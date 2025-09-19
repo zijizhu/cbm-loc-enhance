@@ -234,9 +234,8 @@ def main():
 
     attributes = torch.tensor([label2attr[i] for i in range(len(label2attr))], dtype=torch.long)
 
-    data_root = os.path.expanduser("~/Developer/Research/datasets/")
     images_df = pd.read_csv(
-        Path(data_root) / "CUB_200_2011" / "images.txt",
+        Path(args.data_dir) / "CUB_200_2011" / "images.txt",
         header=None,
         delimiter=" ",
         names=["img_id", "path"],
@@ -244,7 +243,7 @@ def main():
         index_col=0
     )
     splits_df = pd.read_csv(
-        Path(data_root) / "CUB_200_2011" / "train_test_split.txt",
+        Path(args.data_dir) / "CUB_200_2011" / "train_test_split.txt",
         header=None,
         delimiter=" ",
         names=["img_id", "is_train"],

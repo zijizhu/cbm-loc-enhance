@@ -11,6 +11,10 @@ from torchvision.models import (
   ResNet18_Weights,
   resnet34,
   ResNet34_Weights,
+  resnet50,
+  ResNet50_Weights,
+  vgg19_bn,
+  VGG19_BN_Weights
 )
 
 
@@ -73,7 +77,7 @@ class PPNet(nn.Module):
 
 
 def get_backbone(name: str) -> tuple[nn.Module, int]:
-  assert name in ["densenet161", "densenet121", "resnet34", "resnet18"]
+  assert name in ["densenet161", "densenet121", "resnet34", "resnet18", "resnet50", "vgg19"]
   if name == "densenet161":
     backbone = densenet161(weights=DenseNet161_Weights.DEFAULT)
     return nn.Sequential(*list(backbone.children())[:-1]), backbone.classifier.in_features
@@ -86,6 +90,12 @@ def get_backbone(name: str) -> tuple[nn.Module, int]:
   elif name == "resnet34":
     backbone = resnet34(weights=ResNet34_Weights.DEFAULT)
     return nn.Sequential(*list(backbone.children())[:-2]), backbone.fc.in_features
+  elif name == "resnet50":
+    backbone = resnet50(weights=ResNet50_Weights.DEFAULT)
+    return nn.Sequential(*list(backbone.children())[:-2]), backbone.fc.in_features
+  elif name == "vgg19":
+    backbone = vgg19_bn(weights=VGG19_BN_Weights.DEFAULT)
+    return nn.Sequential(backbone.features, nn.AdaptiveAvgPool2d((7, 7))), 512
 
 
 class PPConceptNet(nn.Module):

@@ -145,7 +145,7 @@ def main():
   parser.add_argument("--name", type=str, required=True)
   parser.add_argument("--evaluate", action="store_true")
 
-  parser.add_argument("--backbone", type=str, default="densenet161", choices=["densenet161", "densenet121", "resnet34", "resnet18"])
+  parser.add_argument("--backbone", type=str, default="densenet161", choices=["densenet161", "densenet121", "resnet34", "resnet18", "resnet50", "vgg19"])
 
   parser.add_argument("--batch-size", type=int, default=80, help="Batch size for training")  # 120 should word the best with CUB-200-2011
   parser.add_argument("--data-dir", type=str, default="datasets")

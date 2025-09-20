@@ -57,7 +57,7 @@ def train(
     correct += (predicted == labels).sum().item()
     total += labels.size(0)
     if with_concepts:
-      bin_acc(torch.sigmoid(concept_scores), attributes)
+      bin_acc.update(torch.sigmoid(concept_scores), attributes)
 
   for loss_name, loss_value in train_losses.items():
     train_losses[loss_name] = loss_value / len(train_loader)
@@ -85,11 +85,11 @@ def validate(model: nn.Module, test_loader: Iterator, criterion: nn.Module, devi
       correct += (predicted == labels).sum().item()
       total += labels.size(0)
     if with_concepts:
-      bin_acc(torch.sigmoid(concept_scores), attributes)
+      bin_acc.update(torch.sigmoid(concept_scores), attributes)
 
   for loss_name, loss_value in val_losses.items():
     val_losses[loss_name] = loss_value / len(test_loader)
-  return val_losses, correct / total, bin_acc.compute().item(), bin_acc.compute().item() if with_concepts else None
+  return val_losses, correct / total, bin_acc.compute().item() if with_concepts else None
 
 
 def get_warmup_optimizer(model: nn.Module):

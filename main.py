@@ -16,6 +16,7 @@ from tqdm import tqdm
 from data import load_data
 from nets import PPConceptNet, Criterion
 from lightning import seed_everything
+from torchmetrics.classification import BinaryAccuracy
 
 from sem_analysis.vlpart import generate_prototype_semantics
 from eval.concept_locality import Cub2011Eval, evaluate_concept_locality, get_activation_maps
@@ -33,6 +34,7 @@ def train(
   train_losses = defaultdict(float)
   correct = 0
   total = 0
+  bin_acc = BinaryAccuracy(multidim_average="global").to(device=device)
 
   for images, labels, attributes in tqdm(train_loader):
     images, labels, attributes = images.to(device), labels.to(device), attributes.to(device)
@@ -54,10 +56,11 @@ def train(
     predicted = torch.argmax(logits, dim=-1)
     correct += (predicted == labels).sum().item()
     total += labels.size(0)
+    bin_acc(torch.sigmoid(concept_scores), attributes)
 
   for loss_name, loss_value in train_losses.items():
     train_losses[loss_name] = loss_value / len(train_loader)
-  return train_losses, correct / total
+  return train_losses, correct / total, bin_acc.compute().item()
 
 
 def validate(model: nn.Module, test_loader: Iterator, criterion: nn.Module, device: torch.dtype | str, with_concepts: bool = False):
@@ -65,6 +68,7 @@ def validate(model: nn.Module, test_loader: Iterator, criterion: nn.Module, devi
   val_losses = defaultdict(float)
   correct = 0
   total = 0
+  bin_acc = BinaryAccuracy(multidim_average="global").to(device=device)
 
   with torch.no_grad():
     for images, labels, attributes in tqdm(test_loader):
@@ -79,9 +83,11 @@ def validate(model: nn.Module, test_loader: Iterator, criterion: nn.Module, devi
       predicted = torch.argmax(logits, dim=-1)
       correct += (predicted == labels).sum().item()
       total += labels.size(0)
+    bin_acc(torch.sigmoid(concept_scores), attributes)
+
   for loss_name, loss_value in val_losses.items():
     val_losses[loss_name] = loss_value / len(test_loader)
-  return val_losses, correct / total
+  return val_losses, correct / total, bin_acc.compute().item()
 
 
 def get_warmup_optimizer(model: nn.Module):
@@ -265,16 +271,18 @@ def main():
     with_concepts = args.concept_layer_only or epoch >= args.concept_layer_start_epoch
     logger.info(f"Training with concepts: {with_concepts}")
 
-    train_losses, train_acc = train(model, train_loader, criterion, optimizer, device, with_concepts=with_concepts)
-    val_losses, val_acc = validate(model, test_loader, criterion, device, with_concepts=with_concepts)
+    train_losses, train_acc, train_cpt_acc = train(model, train_loader, criterion, optimizer, device, with_concepts=with_concepts)
+    val_losses, val_acc, val_cpt_acc = validate(model, test_loader, criterion, device, with_concepts=with_concepts)
 
     for loss_name, loss_value in train_losses.items():
       logger.info(f"Train {loss_name}: {loss_value:.4f}")
     logger.info(f"Train Acc: {train_acc:.4f}")
+    logger.info(f"Train Concept Acc: {train_cpt_acc:.4f}")
 
     for loss_name, loss_value in val_losses.items():
       logger.info(f"Val {loss_name}: {loss_value:.4f}")
     logger.info(f"Val Acc: {val_acc:.4f}")
+    logger.info(f"Val Concept Acc: {val_cpt_acc:.4f}")
 
     # Checkpointing
     if val_acc > best_val_acc:

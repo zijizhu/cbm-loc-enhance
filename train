@@ -3,14 +3,10 @@
 datadir="/data/"
 logdir="./logs"
 
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --k 3 --name resnet34-k3 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --k 5 --name resnet34-k5 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --k 7 --name resnet34-k7 --evaluate
+
 python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet18 --name resnet18 --evaluate
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet18 --evaluate
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet121 --name densenet121 --evaluate
-
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet18 --name resnet18-42 --seed 42 --evaluate
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet18-42 --seed 42 --evaluate
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet121 --name densenet121-42 --seed 42 --evaluate
-
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet18 --name resnet18-0 --seed 0 --evaluate
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet18-0 --seed 0 --evaluate
-python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet121 --name densenet121-0 --seed 0 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone resnet34 --name resnet34 --evaluate
+python3 main.py --data-dir $datadir --log-dir $logdir --backbone densenet161 --name densenet161 --evaluate

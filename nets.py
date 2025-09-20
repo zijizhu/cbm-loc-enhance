@@ -225,7 +225,7 @@ class Criterion(nn.Module):
 
   def ortho_criterion(self, prototypes: torch.Tensor):
     cur_basis_matrix = torch.squeeze(prototypes)
-    subspace_basis_matrix = cur_basis_matrix.reshape(self.num_classes, 10, -1)
+    subspace_basis_matrix = cur_basis_matrix.reshape(self.num_classes, self.k, -1)
     subspace_basis_matrix_T = torch.transpose(subspace_basis_matrix, 1, 2)
     ortho_operator = torch.matmul(subspace_basis_matrix, subspace_basis_matrix_T)
     I_operator = torch.eye(subspace_basis_matrix.size(1), subspace_basis_matrix.size(1)).to(device=prototypes.device)

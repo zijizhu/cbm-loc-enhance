@@ -56,11 +56,12 @@ def train(
     predicted = torch.argmax(logits, dim=-1)
     correct += (predicted == labels).sum().item()
     total += labels.size(0)
-    bin_acc(torch.sigmoid(concept_scores), attributes)
+    if with_concepts:
+      bin_acc(torch.sigmoid(concept_scores), attributes)
 
   for loss_name, loss_value in train_losses.items():
     train_losses[loss_name] = loss_value / len(train_loader)
-  return train_losses, correct / total, bin_acc.compute().item()
+  return train_losses, correct / total, bin_acc.compute().item() if with_concepts else None
 
 
 def validate(model: nn.Module, test_loader: Iterator, criterion: nn.Module, device: torch.dtype | str, with_concepts: bool = False):
@@ -83,11 +84,12 @@ def validate(model: nn.Module, test_loader: Iterator, criterion: nn.Module, devi
       predicted = torch.argmax(logits, dim=-1)
       correct += (predicted == labels).sum().item()
       total += labels.size(0)
-    bin_acc(torch.sigmoid(concept_scores), attributes)
+    if with_concepts:
+      bin_acc(torch.sigmoid(concept_scores), attributes)
 
   for loss_name, loss_value in val_losses.items():
     val_losses[loss_name] = loss_value / len(test_loader)
-  return val_losses, correct / total, bin_acc.compute().item()
+  return val_losses, correct / total, bin_acc.compute().item(), bin_acc.compute().item() if with_concepts else None
 
 
 def get_warmup_optimizer(model: nn.Module):
@@ -277,12 +279,14 @@ def main():
     for loss_name, loss_value in train_losses.items():
       logger.info(f"Train {loss_name}: {loss_value:.4f}")
     logger.info(f"Train Acc: {train_acc:.4f}")
-    logger.info(f"Train Concept Acc: {train_cpt_acc:.4f}")
+    if with_concepts:
+      logger.info(f"Train Concept Acc: {train_cpt_acc:.4f}")
 
     for loss_name, loss_value in val_losses.items():
       logger.info(f"Val {loss_name}: {loss_value:.4f}")
     logger.info(f"Val Acc: {val_acc:.4f}")
-    logger.info(f"Val Concept Acc: {val_cpt_acc:.4f}")
+    if with_concepts:
+      logger.info(f"Val Concept Acc: {val_cpt_acc:.4f}")
 
     # Checkpointing
     if val_acc > best_val_acc:
